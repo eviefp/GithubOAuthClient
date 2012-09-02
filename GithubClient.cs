@@ -1,5 +1,4 @@
-﻿
-namespace GithubOAuthClient
+﻿namespace GithubOAuthClient
 {
     using System;
     using System.Collections.Generic;
@@ -13,7 +12,7 @@ namespace GithubOAuthClient
     {
         private const string AuthorizationEndpoint = "https://github.com/login/oauth/authorize?client_id={0}&redirect_uri={1}";
         private const string TokenEndpoint = "https://github.com/login/oauth/access_token";
-        private const string TokenPostFormat = "client_id={0}&client_secret={1}&code={2}&state";
+        private const string TokenPostFormat = "client_id={0}&client_secret={1}&code={2}";
         private readonly string applicationId_;
         private readonly string applicationSecret_;
 
@@ -26,14 +25,14 @@ namespace GithubOAuthClient
             if (string.IsNullOrEmpty(appSecret))
                 throw new ArgumentException("appSecret");
 
-            this.applicationId_ = appId;
-            this.applicationSecret_ = appSecret;
+            applicationId_ = appId;
+            applicationSecret_ = appSecret;
         }
 
         protected override Uri GetServiceLoginUrl(Uri returnUrl)
         {
             return new Uri(
-                string.Format(AuthorizationEndpoint, applicationId_, returnUrl.AbsoluteUri)
+                string.Format(AuthorizationEndpoint, applicationId_, Uri.EscapeDataString(returnUrl.AbsoluteUri))
             );
         }
 
@@ -91,8 +90,8 @@ namespace GithubOAuthClient
 
             var userData = new Dictionary<string, string>();
 
-            userData.Add("login", (string)json["login"]);
-            userData.Add("id", (string)json["id"]);
+            userData.Add("username", (string)json["login"]);
+            userData.Add("id", json["id"].ToString());
             userData.Add("avatar_url", (string)json["avatar_url"]);
             userData.Add("gravatar_id", (string)json["gravatar_id"]);
             userData.Add("url", (string)json["url"]);
@@ -101,24 +100,23 @@ namespace GithubOAuthClient
             userData.Add("blog", (string)json["blog"]);
             userData.Add("location", (string)json["location"]);
             userData.Add("email", (string)json["email"]);
-            userData.Add("hireable", (string)json["hireable"]);
+            userData.Add("hireable", json["hireable"].ToString());
             userData.Add("bio", (string)json["bio"]);
-            userData.Add("public_repos", (string)json["public_repos"]);
-            userData.Add("public_gists", (string)json["public_gists"]);
-            userData.Add("followers", (string)json["followers"]);
-            userData.Add("following", (string)json["following"]);
+            userData.Add("public_repos", json["public_repos"].ToString());
+            userData.Add("public_gists", json["public_gists"].ToString());
+            userData.Add("followers", json["followers"].ToString());
+            userData.Add("following", json["following"].ToString());
             userData.Add("html_url", (string)json["html_url"]);
-            userData.Add("created_at", (string)json["created_at"]);
+            userData.Add("created_at", json["created_at"].ToString());
             userData.Add("type", (string)json["type"]);
-            userData.Add("total_private_repos", (string)json["total_private_repos"]);
-            userData.Add("owned_private_repos", (string)json["owned_private_repos"]);
-            userData.Add("private_gists", (string)json["private_gists"]);
+            if (json["total_private_repos"] != null)
+            {
+                userData.Add("total_private_repos", json["total_private_repos"].ToString());
+                userData.Add("owned_private_repos", json["owned_private_repos"].ToString());
+                userData.Add("private_gists", json["private_gists"].ToString());
+            }
             userData.Add("disk_usage", (string)json["disk_usage"]);
             userData.Add("collaborators", (string)json["collaborators"]);
-            userData.Add("plan_name", (string)json["plan"]["name"]);
-            userData.Add("plan_space", (string)json["plan"]["space"]);
-            userData.Add("plan_collaborators", (string)json["plan"]["collaborators"]);
-            userData.Add("plan_private_repos", (string)json["plan"]["private_repos"]);
 
             return userData;
         }
